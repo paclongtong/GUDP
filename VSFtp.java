@@ -89,7 +89,7 @@ public class VSFtp {
     }
 
     public DatagramPacket getPacket(InetSocketAddress sockaddr) {
-        byte[] data = getBytes();
+        byte[] data = getBytes();       // transfer data from buffer to data[]
         DatagramPacket packet = new DatagramPacket(data, data.length, sockaddr);
         return packet;
     }

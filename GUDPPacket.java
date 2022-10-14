@@ -36,18 +36,6 @@ public class GUDPPacket {
         return gudppacket;
     }
 
-
-    public static GUDPPacket encapsulateBSN(DatagramPacket packet) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(packet.getLength() + HEADER_SIZE);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        GUDPPacket gudppacket = new GUDPPacket(buffer);
-        gudppacket.setType(TYPE_BSN);
-        gudppacket.setVersion(GUDP_VERSION);
-        byte[] data = packet.getData();
-        gudppacket.setPayload(data);
-        gudppacket.setSocketAddress((InetSocketAddress) packet.getSocketAddress());
-        return gudppacket;
-    }
     /* 
      * Application receive processing: Extract application payload into a DatagramPacket, 
      * with data and socket address.

@@ -34,7 +34,7 @@ class VSFtpSender implements Runnable {
         sendAll(vsBegin);
         byte[] fileBuffer = new byte[VSFtp.MAX_DATA_LEN];
         int byteRead;
-        while ((byteRead = inputStream.read(fileBuffer, 0, VSFtp.MAX_DATA_LEN)) != -1) {
+        while ((byteRead = inputStream.read(fileBuffer, 0, VSFtp.MAX_DATA_LEN)) != -1) {        // send buffer data
             VSFtp vsData = new VSFtp(VSFtp.TYPE_DATA, fileBuffer, byteRead);
             sendAll(vsData);
         }

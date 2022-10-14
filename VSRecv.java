@@ -141,9 +141,8 @@ class VSFtpReceiver implements Runnable {
 
     public void run() {
         while (true) {
-            System.out.println("Listening 1");
             try {
-                System.out.println("Listening 1");
+                System.out.println("Listening");
                 byte[] buf = new byte[VSFtp.MAX_LEN];
                 DatagramPacket packet = new DatagramPacket(buf, VSFtp.MAX_LEN);
                 gUdpSocket.receive(packet);
