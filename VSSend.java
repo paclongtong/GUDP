@@ -36,7 +36,7 @@ class VSFtpSender implements Runnable {
         int byteRead;
         while ((byteRead = inputStream.read(fileBuffer, 0, VSFtp.MAX_DATA_LEN)) != -1) {        // send buffer data
             VSFtp vsData = new VSFtp(VSFtp.TYPE_DATA, fileBuffer, byteRead);
-            sendAll(vsData);
+            sendAll(vsData);     // each time only a segment of vsData is infilled to a GUDP packet to call GUDP send()
         }
         VSFtp vsEnd = new VSFtp(VSFtp.TYPE_END);
         sendAll(vsEnd);

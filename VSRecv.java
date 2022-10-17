@@ -1,3 +1,4 @@
+/*Created by Bolong Tang Oct. 2nd, 2022*/
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -145,7 +146,7 @@ class VSFtpReceiver implements Runnable {
                 System.out.println("Listening");
                 byte[] buf = new byte[VSFtp.MAX_LEN];
                 DatagramPacket packet = new DatagramPacket(buf, VSFtp.MAX_LEN);
-                gUdpSocket.receive(packet);
+                gUdpSocket.receive(packet);     // just one packet to fill up!
                 ReceiveContext context = getContext(packet);
                 context.processPacket(packet);
             } catch (Exception e) {
