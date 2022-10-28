@@ -337,9 +337,8 @@ class GUDPPacket1 {
         gudppacket.setType(TYPE_ACK);
         gudppacket.setVersion(GUDP_VERSION);
         gudppacket.setSeqno(seq);
-
-        byte[] SEQ = intToByteArray(seq + 1);
-        gudppacket.setPayload(SEQ);
+//        byte[] SEQ = intToByteArray(seq + 1);
+//        gudppacket.setPayload(SEQ);
         gudppacket.setSocketAddress((InetSocketAddress) packet.getSocketAddress());
 
         return gudppacket;
@@ -473,12 +472,6 @@ class GUDPPacket1 {
         byteBuffer.get(dst, 0, length);
     }
 
-    /**
-     * int到byte[] 由高位到低位
-     *
-     * @param i 需要转换为byte数组的整行值。
-     * @return byte数组
-     */
     public static byte[] intToByteArray(int i) {
         byte[] result = new byte[4];
         result[0] = (byte) ((i >> 24) & 0xFF);
@@ -488,12 +481,6 @@ class GUDPPacket1 {
         return result;
     }
 
-    /**
-     * byte[]转int
-     *
-     * @param bytes 需要转换成int的数组
-     * @return int值
-     */
     public static int byteArrayToInt(byte[] bytes) {
         int value = 0;
         for (int i = 0; i < 4; i++) {
