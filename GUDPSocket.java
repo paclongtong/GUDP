@@ -1,5 +1,4 @@
 // created by Bolong Tang on Oct. 1st, 2022
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.crypto.Data;
 import java.net.DatagramPacket;
@@ -36,11 +35,11 @@ public class GUDPSocket implements GUDPSocketAPI {
     DatagramPacket[] packet_backup = new DatagramPacket[GUDPPacket1.MAX_WINDOW_SIZE];
 
     public void send(DatagramPacket packet) throws IOException {
-
         if (!startFlag) {
             startFlag = true;
             // listen to datagram buffer if there is something to receive
             while (BSN == -1) {      // rethink the condition
+                int fail_count = 0;
                 try {
                     sendBSN(packet);
                     byte[] buf = new byte[GUDPPacket1.MAX_DATAGRAM_LEN];
@@ -54,7 +53,12 @@ public class GUDPSocket implements GUDPSocketAPI {
                     BSN = gudppacket.getSeqno() - 1;
                 } catch (Exception e) {
                     System.out.println("BSN ACK reception error: " + e.getMessage() + " Resend once again.");
-                    continue;
+                    fail_count+=1;
+                    if (fail_count<10){
+                        continue;
+                    }else {
+                        error_finish();
+                    }
                 }
             }
             // receive BSN and extract BSN
@@ -65,6 +69,7 @@ public class GUDPSocket implements GUDPSocketAPI {
             while (seq_temp == seq) {
                 int fail_count = 0;
                 sendDATA(packet, seq);
+                System.out.println("DATA sent, seq: " + seq + " , number: " + (seq - BSN));
                 senderBuffer[0] = packet;
                 time_win[0] = System.currentTimeMillis();
                 window[0] = seq;
@@ -86,7 +91,7 @@ public class GUDPSocket implements GUDPSocketAPI {
                     if (fail_count < 10) {
                         continue;
                     } else {
-                        finish();
+                        error_finish();
                     }
                 }
             }
@@ -120,7 +125,7 @@ public class GUDPSocket implements GUDPSocketAPI {
                         if (fail_count < 10) {
                             continue;
                         } else {
-                            finish();
+                            error_finish();
                         }
                     }
                 }
@@ -231,6 +236,10 @@ public class GUDPSocket implements GUDPSocketAPI {
         seq = gudppacket.getSeqno();
     }
 
+    public void error_finish() throws IOException {
+        System.out.println("Connection failed. Process finished.");
+        datagramSocket.close();
+    }
     public void finish() throws IOException {
         System.out.println("Transmission process finished.");
         datagramSocket.close();
@@ -312,16 +321,16 @@ class GUDPPacket1 {
         gudppacket.setType(TYPE_BSN);
         gudppacket.setVersion(GUDP_VERSION);
         Random r = new Random();
-        int bsn = r.nextInt(128);
+        int bsn = r.nextInt(127)+1;
         gudppacket.setSeqno(bsn);
-        byte[] BSN = intToByteArray(bsn);
-        gudppacket.setPayload(BSN);
+//        byte[] BSN = intToByteArray(bsn);
+//        gudppacket.setPayload(BSN);
 
         gudppacket.setSocketAddress((InetSocketAddress) packet.getSocketAddress());
         return gudppacket;
     }
 
-    public static @NotNull GUDPPacket1 encapsulate_ACK(DatagramPacket packet, int seq) throws IOException {
+    public static GUDPPacket1 encapsulate_ACK(DatagramPacket packet, int seq) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(packet.getLength() + HEADER_SIZE);
         buffer.order(ByteOrder.BIG_ENDIAN);
         GUDPPacket1 gudppacket = new GUDPPacket1(buffer);
