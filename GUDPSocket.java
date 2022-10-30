@@ -53,10 +53,10 @@ public class GUDPSocket implements GUDPSocketAPI {
                     BSN = gudppacket.getSeqno() - 1;
                 } catch (Exception e) {
                     System.out.println("BSN ACK reception error: " + e.getMessage() + " Resend once again.");
-                    fail_count+=1;
-                    if (fail_count<10){
+                    fail_count += 1;
+                    if (fail_count < 10) {
                         continue;
-                    }else {
+                    } else {
                         error_finish();
                     }
                 }
@@ -122,6 +122,7 @@ public class GUDPSocket implements GUDPSocketAPI {
                     } catch (IOException e) {
                         System.out.println("Exception when getting ACK: " + e.getMessage());
                         fail_count += 1;
+                        window_pointer -= 1;
                         if (fail_count < 10) {
                             continue;
                         } else {
@@ -184,7 +185,7 @@ public class GUDPSocket implements GUDPSocketAPI {
             System.out.println("Got DATA packet: test , seq: " + gudppacket_test.getSeqno());*/
             gudppacket2.setSocketAddress(gudppacket.getSocketAddress());    // 3
 //            if (gudppacket2.getSeqno() != seq)
-            gudppacket2.decapsulate(packet);    //4
+            gudppacket2.decapsulate(packet);    // 4
             send_ACK(udppacket2, gudppacket2.getSeqno() + 1);
 
         } else if (gudppacket.getType() == GUDPPacket1.TYPE_DATA) {
@@ -238,11 +239,16 @@ public class GUDPSocket implements GUDPSocketAPI {
 
     public void error_finish() throws IOException {
         System.out.println("Connection failed. Process finished.");
-        datagramSocket.close();
+        startFlag = false;
+        BSN = -1;
+//        datagramSocket.close();
     }
+
     public void finish() throws IOException {
         System.out.println("Transmission process finished.");
-        datagramSocket.close();
+        startFlag = false;
+        BSN = -1;
+//        datagramSocket.close();
     }
 
     public void close() throws IOException {
@@ -292,7 +298,7 @@ class GUDPPacket1 {
 
     private InetSocketAddress sockaddr;
     private ByteBuffer byteBuffer;
-    private Integer payloadLength;
+    private Integer payloadLength = 0;
 
     /*
      * Application send processing: Build a DATA GUDP packet to encaspulate payload
@@ -315,13 +321,15 @@ class GUDPPacket1 {
     }
 
     public static GUDPPacket1 encapsulate_BSN(DatagramPacket packet) throws IOException {   // set BSN to its header
-        ByteBuffer buffer = ByteBuffer.allocate(packet.getLength() + HEADER_SIZE);
+//        ByteBuffer buffer = ByteBuffer.allocate(packet.getLength() + HEADER_SIZE);
+        ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);       // 10302022
         buffer.order(ByteOrder.BIG_ENDIAN);
         GUDPPacket1 gudppacket = new GUDPPacket1(buffer);
         gudppacket.setType(TYPE_BSN);
+
         gudppacket.setVersion(GUDP_VERSION);
         Random r = new Random();
-        int bsn = r.nextInt(127)+1;
+        int bsn = r.nextInt(127) + 1;
         gudppacket.setSeqno(bsn);
 //        byte[] BSN = intToByteArray(bsn);
 //        gudppacket.setPayload(BSN);
@@ -331,7 +339,7 @@ class GUDPPacket1 {
     }
 
     public static GUDPPacket1 encapsulate_ACK(DatagramPacket packet, int seq) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(packet.getLength() + HEADER_SIZE);
+        ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
         buffer.order(ByteOrder.BIG_ENDIAN);
         GUDPPacket1 gudppacket = new GUDPPacket1(buffer);
         gudppacket.setType(TYPE_ACK);
@@ -396,8 +404,15 @@ class GUDPPacket1 {
         return new DatagramPacket(getBytes(), totlength, sockaddr);
     }
 
+    public DatagramPacket pack_BSN() throws IOException {
+//        int totlength = HEADER_SIZE + getPayloadLength();
+        int totlength = HEADER_SIZE;
+        InetSocketAddress socketAddress = getSocketAddress();
+        return new DatagramPacket(getBytes(), totlength, sockaddr);
+    }
+
     public DatagramPacket pack_back() throws IOException {
-        int totlength = HEADER_SIZE + getPayloadLength();
+        int totlength = HEADER_SIZE;        // 10302022
         InetSocketAddress socketAddress = getSocketAddress();
         return new DatagramPacket(getBytes(), totlength, socketAddress);
     }
